@@ -18,7 +18,8 @@ AB_OTA_PARTITIONS += \
     product \
     system \
     system_ext
-BOARD_USES_RECOVERY_AS_BOOT := true
+# DIZI has dedicated recovery partition
+BOARD_USES_RECOVERY_AS_BOOT := false
 
 # Architecture
 TARGET_ARCH := arm64
@@ -98,3 +99,17 @@ TW_SCREEN_BLANK_ON_BOOT := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
 TW_USE_TOOLBOX := true
 TW_INCLUDE_REPACKTOOLS := true
+
+# Fixed for dizi WiFi - separate recovery
+TARGET_RECOVERY_FSTAB := $(DEVICE_PATH)/recovery.fstab
+BOARD_INCLUDE_RECOVERY_DTBO := true
+BOARD_KERNEL_SEPARATED_DTBO := true
+TW_BRIGHTNESS_PATH := "/sys/class/backlight/panel0-backlight/brightness"
+TW_DEFAULT_BRIGHTNESS := 1200
+TW_MAX_BRIGHTNESS := 2047
+TW_EXCLUDE_APEX := true
+TW_INCLUDE_FASTBOOTD := true
+TW_NO_SCREEN_BLANK := true
+RECOVERY_SDCARD_ON_DATA := true
+TW_HAS_EDL_MODE := false
+TW_SUPPORT_INPUT_AIDL_HAPTICS := true

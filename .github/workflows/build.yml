@@ -1,0 +1,63 @@
+name: Build TWRP dizi
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout device tree
+        uses: actions/checkout@v4
+        with:
+          path: device_tree
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gperf gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses-dev lib32z-dev libx11-dev libxml2-utils xsltproc unzip bc cpio git python3 openjdk-11-jdk
+
+      - name: Install repo
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
+
+      - name: Init minimal TWRP manifest
+        run: |
+          mkdir -p ~/twrp
+          cd ~/twrp
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp -b twrp-12.1
+          echo "repo init done"
+
+      - name: Sync
+        run: |
+          cd ~/twrp
+          repo sync -c --no-tags --no-clone-bundle -j4 --force-sync
+
+      - name: Copy device tree
+        run: |
+          rm -rf ~/twrp/device/xiaomi/dizi
+          mkdir -p ~/twrp/device/xiaomi
+          cp -r $GITHUB_WORKSPACE/device_tree ~/twrp/device/xiaomi/dizi
+          ls -R ~/twrp/device/xiaomi/dizi | head -n 100
+
+      - name: Build
+        run: |
+          cd ~/twrp
+          export ALLOW_MISSING_DEPENDENCIES=true
+          . build/envsetup.sh
+          lunch omni_dizi-eng
+          mka recoveryimage -j$(nproc --all)
+
+      - name: Upload TWRP
+        uses: actions/upload-artifact@v4
+        with:
+          name: twrp-dizi-recovery
+          path: |
+            ~/twrp/out/target/product/dizi/recovery.img
+            ~/twrp/out/target/product/dizi/*.img
+          if-no-files-found: error
