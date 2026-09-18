@@ -21,7 +21,7 @@ jobs:
         run: |
           mkdir -p ~/fox
           cd ~/fox
-          repo init --depth=1 -u https://github.com/OrangeFoxRecovery/sync.git -b fox_12.1 || repo init --depth=1 -u https://github.com/OrangeFoxRecovery/manifest -b fox_12.1
+          repo init --depth=1 -u https://gitlab.com/OrangeFox/sync.git -b fox_12.1 || repo init --depth=1 -u https://gitlab.com/OrangeFox/sync.git -b fox_12.1
       - name: Sync
         run: cd ~/fox && repo sync -c --no-tags --no-clone-bundle -j4 --force-sync
       - name: Copy device tree
