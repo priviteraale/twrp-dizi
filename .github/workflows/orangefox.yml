@@ -1,0 +1,43 @@
+name: Build OrangeFox dizi
+on:
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: device_tree
+      - name: Install deps
+        run: sudo apt-get update && sudo apt-get install -y gperf gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses-dev lib32z-dev libx11-dev libxml2-utils xsltproc unzip bc cpio git python3 openjdk-11-jdk
+      - name: Install repo
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
+          chmod a+x ~/bin/repo
+          echo "$HOME/bin" >> $GITHUB_PATH
+      - name: Init OrangeFox manifest
+        run: |
+          mkdir -p ~/fox
+          cd ~/fox
+          repo init --depth=1 -u https://github.com/OrangeFoxRecovery/sync.git -b fox_12.1 || repo init --depth=1 -u https://github.com/OrangeFoxRecovery/manifest -b fox_12.1
+      - name: Sync
+        run: cd ~/fox && repo sync -c --no-tags --no-clone-bundle -j4 --force-sync
+      - name: Copy device tree
+        run: |
+          rm -rf ~/fox/device/xiaomi/dizi
+          mkdir -p ~/fox/device/xiaomi
+          cp -r $GITHUB_WORKSPACE/device_tree ~/fox/device/xiaomi/dizi
+      - name: Build
+        run: |
+          cd ~/fox
+          export ALLOW_MISSING_DEPENDENCIES=true
+          . build/envsetup.sh
+          lunch omni_dizi-eng || lunch twrp_dizi-eng
+          mka adbd recoveryimage -j$(nproc --all)
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: orangefox-dizi
+          path: ~/fox/out/target/product/dizi/*.img
