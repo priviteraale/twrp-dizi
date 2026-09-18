@@ -21,11 +21,7 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     bootctrl.parrot
 
-PRODUCT_STATIC_BOOT_CONTROL_HAL := \
-    bootctrl.parrot \
-    libgptutils \
-    libz \
-    libcutils
+# PRODUCT_STATIC_BOOT_CONTROL_HAL removed - obsolete for TWRP 12.1
 
 PRODUCT_PACKAGES += \
     otapreopt_script \
